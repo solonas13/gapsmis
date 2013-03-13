@@ -1,5 +1,5 @@
 /**
-    GapsMis: pairwise sequence alignment with a bounded number of gaps.
+    GapsMis: flexible sequence alignment with a bounded number of gaps.
     Copyright (C) 2013 Solon P. Pissis
 
     This program is free software: you can redistribute it and/or modify
