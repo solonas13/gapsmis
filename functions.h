@@ -45,11 +45,11 @@ unsigned int nuc_char_to_index ( char a );
 
 unsigned int pro_char_to_index ( char a );
 
-unsigned int opt_solution ( double *** G, unsigned int l, unsigned int n, unsigned int m, double * MAXscore, unsigned int * start, unsigned int * MINnumgaps );
+unsigned int opt_solution ( double ** G, unsigned int n, unsigned int m, double * MAXscore, unsigned int * start );
 
 double total_scoring ( unsigned int gap, double current_score, double gap_open_penalty, double gap_extend_penalty );
 
-unsigned int backtracing ( int ** H, unsigned int m, unsigned int n, unsigned int start, unsigned int * gaps_pos, unsigned int l, unsigned int * gaps_len, unsigned int * where );
+unsigned int backtracing ( int ** H, unsigned int m, unsigned int n, unsigned int start, unsigned int * gaps_pos, unsigned int * beta, unsigned int * gaps_len, unsigned int * where );
 
 unsigned int swap_txt_pat ( struct TSeq ** seqa, unsigned int * n, struct TSeq ** seqb, unsigned int * m );
 
