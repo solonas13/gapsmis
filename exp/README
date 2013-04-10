@@ -1,0 +1,17 @@
+1. Make sure that you have compiled GapsMis
+
+2. Compile the data generator via
+
+  $ make
+
+3. Uncompress the reference sequence via
+
+  $ bunzip2 Arabidopsis.chr1.fa.bz2
+
+4. Generate 10,000 pairs of sequences of length 100bp via
+
+  $ ./datagen Arabidopsis.chr1.fa 10000 100
+
+4. Evaluate the accuracy of GapsMis via
+
+  $ python gapsmis_bench.py 10.0 0.5 2 10000
