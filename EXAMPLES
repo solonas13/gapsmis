@@ -1,0 +1,7 @@
+After compiling the code, you can run an example via
+
+$ ./gapsmis -a ./data/seqa.fa -b ./data/seqb.fa
+
+You can see the generated output via
+
+$ cat gapsmis.out
