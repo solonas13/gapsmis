@@ -310,7 +310,7 @@ int calculate_length(struct gap_info ** gm, int seq_len, int pos)
   return (sum);
 }
 
-void compute_reads(int cnt_reads, struct gap_info ** gm, char * seq, int seq_len, int read_len, int nr_gaps, const char * sm)
+void compute_reads(int cnt_reads, struct gap_info ** gm, char * seq, int seq_len, int read_len, int nr_gaps, const char * sm, int * cnt_gaps)
 {
   FILE                * fpr;
   FILE                * fpg;
@@ -415,6 +415,8 @@ void compute_reads(int cnt_reads, struct gap_info ** gm, char * seq, int seq_len
      fprintf(fpt, ">%s_%d\n%s\n", "target", i + 1, target);
      fprintf(fpr, ">%s_%d\n%s\n", "read", i + 1, read);
      fprintf(fpg, "%d,%d,%d\n", gaps, gap_sum, snp_sum);
+	
+     if ( gaps > 0 )  ( * cnt_gaps ) ++;	
    }
 
   free(reserved);
@@ -452,6 +454,7 @@ int main(int argc, char *argv[])
   int                   gaps;
   int                   cnt_reads;
   int                   read_size;
+  int                   cnt_gaps;
 
   if ( argc != 4)
    {
@@ -478,7 +481,9 @@ int main(int argc, char *argv[])
   printf ("Total snp: %d\n", (int)ceil(seq_len * SNP_RATE));
 
   printf ("New sequence length: %d\n", new_seq_len);
-  compute_reads(cnt_reads, gm, ri->seq, seq_len, read_size, gaps, sm);
+  cnt_gaps = 0;
+  compute_reads(cnt_reads, gm, ri->seq, seq_len, read_size, gaps, sm, &cnt_gaps);
+  printf ("Gaps in the reads: %lf\n", (double) cnt_gaps/cnt_reads );
 
   return (0);
 }

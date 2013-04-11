@@ -15,3 +15,11 @@
 5. Evaluate the accuracy of GapsMis via
 
   $ python gapsmis_bench.py 10.0 0.5 2 10000
+
+6. If EMBOSS suite is not installed, you can install it via
+
+  $ sudo apt-get install emboss
+
+7. Evaluate the accuracy of EMBOSS needle via
+
+  $ python needle_bench.py 10 0.5 10000 
