@@ -12,6 +12,10 @@
 
   $ ./datagen Arabidopsis.chr1.fa 10000 100
 
+  Notice that if you wish to input your own SNP and gap
+  occurrence frequencies, you can amend the definitions in
+  file `datagen.c'. 
+
 5. Evaluate the accuracy of GapsMis via
 
   $ python gapsmis_bench.py 10.0 0.5 2 10000
