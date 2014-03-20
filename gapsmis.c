@@ -189,7 +189,7 @@ int main ( int argc, char ** argv)
        }
     }
 
-   #if 0
+   #if 1
    int s;
    for ( s = 0;  s < MAXnumgaps; s++ )
         {
@@ -220,30 +220,30 @@ int main ( int argc, char ** argv)
         }
    #endif
 
+   MINnumgaps = 0;	//to be computed		
    /* finds the optimal alignment based on the matrices scores */
-   opt_solution ( G[MAXnumgaps - 1], n, m, &MAXscore, &start );
+   opt_solution ( G, MAXnumgaps, n, m, &MAXscore, &start, &MINnumgaps );
 
-   if( ( gaps_pos = ( unsigned int * ) calloc ( MAXnumgaps, sizeof( unsigned int ) ) ) == NULL )
+   if( ( gaps_pos = ( unsigned int * ) calloc ( MINnumgaps, sizeof( unsigned int ) ) ) == NULL )
     {
       fprintf( stderr, "gaps_pos could not be allocated\n" );
       return 0;
     }
 
-   if( ( gaps_len = ( unsigned int * ) calloc ( MAXnumgaps, sizeof( unsigned int ) ) ) == NULL )
+   if( ( gaps_len = ( unsigned int * ) calloc ( MINnumgaps, sizeof( unsigned int ) ) ) == NULL )
     {
       fprintf( stderr, "gaps_pos could not be allocated\n" );
       return 0;
     }
 
-   if( ( where = ( unsigned int * ) calloc ( MAXnumgaps, sizeof( unsigned int ) ) ) == NULL )
+   if( ( where = ( unsigned int * ) calloc ( MINnumgaps, sizeof( unsigned int ) ) ) == NULL )
     {
       fprintf( stderr, "where could not be allocated\n" );
       return 0;
     }
  
-   MINnumgaps = 0;	//to be computed		
    /* computes the position of the gap */
-   backtracing ( H[MAXnumgaps - 1], m, n, start, gaps_pos, &MINnumgaps, gaps_len, where );
+   backtracing ( H[MINnumgaps - 1], m, n, start, gaps_pos, MINnumgaps, gaps_len, where );
 
    /* outputs the results */
    if ( ! ( results( out_file, t, n, p, m, MAXscore, gaps_pos, MINnumgaps, gaps_len, where, swap, scoring_matrix, gap_open_pen, gap_extend_pen ) ) )

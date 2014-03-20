@@ -687,29 +687,34 @@ unsigned int pro_char_to_index ( char a )
  }
 
 /*
-Computes the optimal alignment using matrix G
-Note:	double gap_open_penalty, double gap_extend_penalty, double gap_open_offset_penalty are arguments given by the user to represent the gap penalty.
+Computes the optimal alignment using matrix G in O(2*MAXgap+1) time
+Note:   double gap_open_penalty, double gap_extend_penalty, double gap_open_offset_penalty are arguments given by the user to represent the gap penalty.
 */
-unsigned int opt_solution ( double ** G, unsigned int n, unsigned int m, double * MAXscore, unsigned int * start )
+unsigned int opt_solution ( double *** G, unsigned int l, unsigned int n, unsigned int m, double * MAXscore, unsigned int * start, unsigned int * MINnumgaps )
 {
-	double score = -DBL_MAX;
-	unsigned int i;
-			
-	for ( i = 0 ; i < n + 1 ; i++ )
-	{
-		double temp_score = G[i][m];
-		if ( temp_score > score )
-		{
-			score = temp_score;
-			( * MAXscore ) = score; 
-			( * start ) = i;		//backtrace from cell G[start,m]
-		}
-	}
-	return 1;
+        double score = -DBL_MAX;
+        unsigned int i, s;
+
+        for ( s = 0; s < l ; s++ )
+        {
+                for ( i = 0 ; i < n + 1 ; i++ )
+                {
+                        double temp_score = G[s][i][m];
+                        if ( temp_score > score )
+                        {
+                                score = temp_score;
+                                ( * MAXscore ) = score;
+                                ( * start ) = i;                //backtrace from cell G[start,m]
+                                ( * MINnumgaps ) = s + 1;
+                        }
+                }
+        }
+        return 1;
 }
 
+#if 0
 /* Gives the position of the gap in O(m) time */
-unsigned int backtracing ( int ** H, unsigned int m, unsigned int n, unsigned int start, unsigned int * gaps_pos, unsigned int * beta, unsigned int * gaps_len, unsigned int * where )
+unsigned int backtracing ( int ** H, unsigned int m, unsigned int n, unsigned int start, unsigned int * gaps_pos, unsigned int beta, unsigned int * gaps_len, unsigned int * where )
 {
 	int i, j;
 
@@ -725,22 +730,58 @@ unsigned int backtracing ( int ** H, unsigned int m, unsigned int n, unsigned in
 		{
 			if ( H[i][j] < 0 )  	//the gap is inserted in the text
 			{	
-				gaps_pos[(* beta)] = i;
-				gaps_len[(* beta)] = -H[i][j];
-				where[(* beta)] = 1;
+				gaps_pos[(beta)] = i;
+				gaps_len[(beta)] = -H[i][j];
+				where[(beta)] = 1;
 			        j = j + H[i][j] ;
 			}
 			else			//the gap is inserted in the pattern
 			{		
-				gaps_pos[(* beta)] = j;
-				gaps_len[(* beta)] = H[i][j];
-				where[(* beta)] = 2;
+				gaps_pos[(beta)] = j;
+				gaps_len[(beta)] = H[i][j];
+				where[(beta)] = 2;
 			        i = i - H[i][j];
 			}
-			(* beta)++;
+			(beta)++;
 		}
 	}
 	return 1;
+}
+#endif
+
+/* Gives the position of the gap in O(m) time */
+unsigned int backtracing ( int ** H, unsigned int m, unsigned int n, unsigned int start, unsigned int * gaps_pos, unsigned int l, unsigned int * gaps_len, unsigned int * where )
+{
+        int i, j, s;
+
+        i = start; j = m; s = 0;        //we start backtracing from the last column
+
+        while ( i >= 0 && j >= 0)
+        {
+                if ( H[i][j] == 0 )
+                {
+                        --i; --j;
+                }
+                else
+                {
+                        if ( H[i][j] < 0 )      //the gap is inserted in the text
+                        {
+                                gaps_pos[s] = i;
+                                gaps_len[s] = - H[i][j];
+                                where[s] = 1;
+                                j = j + H[i][j];
+                        }
+                        else                    //the gap is inserted in the pattern
+                        {
+                                gaps_pos[s] = j;
+                                gaps_len[s] = H[i][j];
+                                where[s] = 2;
+                                i = i - H[i][j];
+                        }
+                        s++;
+                }
+        }
+        return 1;
 }
 
 /*
