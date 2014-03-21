@@ -57,7 +57,7 @@ double total_scoring ( unsigned int gap, double current_score, double gap_open_p
 
 unsigned int backtracing ( int ** H, unsigned int m, unsigned int n, unsigned int start, unsigned int * gaps_pos, unsigned int l, unsigned int * gaps_len, unsigned int * where );
 
-unsigned int backtracing_lcl ( double ** G, unsigned int m, unsigned int n, int ** H, unsigned int istart, unsigned int jstart, unsigned int * gaps_pos, unsigned int l, unsigned int * gaps_len, unsigned int * where );
+unsigned int backtracing_lcl ( double ** G, unsigned int m, unsigned int n, int ** H, unsigned int istart, unsigned int jstart, unsigned int * gaps_pos, unsigned int l, unsigned int * gaps_len, unsigned int * where, unsigned int * iend, unsigned int * jend );
 
 unsigned int swap_txt_pat ( struct TSeq ** seqa, unsigned int * n, struct TSeq ** seqb, unsigned int * m );
 

@@ -27,7 +27,24 @@ void usage ( void );
 
 unsigned int results ( const char * filename, struct TSeq * t, unsigned int n, struct TSeq * p, unsigned int m, double MAXscore, unsigned int * gaps_pos, unsigned int l, unsigned int * gaps_len, unsigned int * where, unsigned int swap, unsigned int matrix, double gap_penalty, double ext_penalty, int L );
 
-unsigned int results_lcl ( const char * filename, struct TSeq * t, unsigned int n, struct TSeq * p, unsigned int m, double MAXscore, unsigned int * gaps_pos, unsigned int l, unsigned int * gaps_len, unsigned int * where, unsigned int swap, unsigned int matrix, double gap_penalty, double ext_penalty, int L );
+unsigned int results_lcl ( 	const char * filename,    
+                       		struct TSeq * t,                    
+                       		unsigned int n,           
+                       		struct TSeq * p,          
+                       		unsigned int m,           
+                       		double max_score, 
+                       		unsigned int * gaps_pos, 
+		       		unsigned int l,	
+                       		unsigned int * gaps_len, 
+                       		unsigned int * where, 
+                       		unsigned int istart, 
+                       		unsigned int iend, 
+                       		unsigned int jstart, 
+                       		unsigned int jend, 
+                       		unsigned int swap, 
+                       		unsigned int matrix,
+                       		double gap_penalty,
+                       		double ext_penalty, int L );
 
 unsigned int print_alignment( const char * seqa, unsigned int seqa_len, const char * seqb, unsigned int seqb_len, unsigned int MINgap, unsigned int gap_pos, char * seq_gap, char * mark_mis, unsigned int * MINmis );
 

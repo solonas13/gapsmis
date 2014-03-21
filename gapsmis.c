@@ -39,6 +39,8 @@ int main ( int argc, char ** argv)
    
    unsigned int istart;		//where to start backtracing
    unsigned int jstart;		//where to start backtracing
+   unsigned int iend;		//where to end backtracing
+   unsigned int jend;		//where to end backtracing
    unsigned int * gaps_pos;	//position of the gap(s)
    unsigned int * gaps_len;	//len of the gap(s)
    unsigned int * where;	//where is the gap(s): text [1] or pattern [2]
@@ -275,7 +277,7 @@ int main ( int argc, char ** argv)
  
    /* computes the position of the gap */
    if ( L == 0 ) backtracing ( H[MINnumgaps - 1], m, n, istart, gaps_pos, MINnumgaps, gaps_len, where );
-   if ( L == 1 ) backtracing_lcl ( G[MINnumgaps - 1], m, n, H[MINnumgaps - 1], istart, jstart, gaps_pos, MINnumgaps, gaps_len, where );
+   if ( L == 1 ) backtracing_lcl ( G[MINnumgaps - 1], m, n, H[MINnumgaps - 1], istart, jstart, gaps_pos, MINnumgaps, gaps_len, where, &iend, &jend );
 
    /* outputs the results */
    if ( L == 0 )
@@ -286,7 +288,7 @@ int main ( int argc, char ** argv)
       }
 
    if ( L == 1 )
-     if ( ! ( results_lcl ( out_file, t, n, p, m, MAXscore, gaps_pos, MINnumgaps, gaps_len, where, swap, scoring_matrix, gap_open_pen, gap_extend_pen, L ) ) )
+     if ( ! ( results_lcl ( out_file, t, n, p, m, MAXscore, gaps_pos, MINnumgaps, gaps_len, where, istart, iend, jstart, jend, swap, scoring_matrix, gap_open_pen, gap_extend_pen, L ) ) )
       {
         fprintf(stderr, "Error: results() failed!!!\n");
         return ( 1 );	

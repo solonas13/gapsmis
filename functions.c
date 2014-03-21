@@ -1108,7 +1108,7 @@ unsigned int backtracing ( int ** H, unsigned int m, unsigned int n, unsigned in
 }
 
 /* Gives the position of the gap in O(m) time */
-unsigned int backtracing_lcl ( double ** G, unsigned int m, unsigned int n, int ** H, unsigned int istart, unsigned int jstart, unsigned int * gaps_pos, unsigned int l, unsigned int * gaps_len, unsigned int * where )
+unsigned int backtracing_lcl ( double ** G, unsigned int m, unsigned int n, int ** H, unsigned int istart, unsigned int jstart, unsigned int * gaps_pos, unsigned int l, unsigned int * gaps_len, unsigned int * where, unsigned int * iend, unsigned int * jend )
 {
         int i, j, s;
 
@@ -1138,6 +1138,9 @@ unsigned int backtracing_lcl ( double ** G, unsigned int m, unsigned int n, int 
                         }
                         s++;
                 }
+		( * iend ) = i;                //backtrace up to cell G[s,i,j]
+		( * jend ) = j;                
+		
         }
         return 1;
 }
