@@ -39,6 +39,7 @@ struct TSwitch
    double               gap_extend_pen;
    int                  max_gap;
    int                  max_num_gaps;
+   int                  L;
  };
 
 #endif

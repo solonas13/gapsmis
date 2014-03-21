@@ -37,7 +37,8 @@ int main ( int argc, char ** argv)
    double MAXscore;		//to be computed
    unsigned int MINnumgaps;	//to be computed		
    
-   unsigned int start;		//where to start backtracing
+   unsigned int istart;		//where to start backtracing
+   unsigned int jstart;		//where to start backtracing
    unsigned int * gaps_pos;	//position of the gap(s)
    unsigned int * gaps_len;	//len of the gap(s)
    unsigned int * where;	//where is the gap(s): text [1] or pattern [2]
@@ -46,6 +47,7 @@ int main ( int argc, char ** argv)
    unsigned int n; 		//length of text
    struct TSeq * p;		//pattern p
    unsigned int m; 		//length of pattern
+   unsigned int L;		//local alignment	
    
    double ***       G; 		//dynamic programming matrix
    int *** 	 H; 		//backtracing matrix
@@ -66,12 +68,18 @@ int main ( int argc, char ** argv)
       gap_open_pen   = - sw . gap_open_pen;	//the penalties should have a negative value
       gap_extend_pen = - sw . gap_extend_pen;
       out_file       =   sw . out_file;
+      L		     =   sw . L;
 
       if ( ! strcmp ( "EDNAFULL", sw . matrix ) )       scoring_matrix = 0;
       else if ( ! strcmp ( "EBLOSUM62", sw . matrix ) ) scoring_matrix = 1;
       else
        {
          fprintf ( stderr, "Error: scoring matrix argument should be `EDNAFULL' for nucleotide sequences or `EBLOSUM62' for protein sequences!!!\n" );
+         return ( 1 );
+       }
+      if ( L > 1 )
+       {
+         fprintf (stderr, "Error: wrong argument with L: should be either 0 (semi-global) or 1 (local)\n" );
          return ( 1 );
        }
     }
@@ -172,21 +180,43 @@ int main ( int argc, char ** argv)
     }
 
    /* dynamic programming algorithm */
-   if ( MAXgap == n - 1 )
+   if ( L == 0 )	
     {
-      if ( ! ( dp_algorithm( G, MAXnumgaps, H, t -> data, n, p -> data, m, scoring_matrix, gap_open_pen, gap_extend_pen ) ) )
-       {
-         fprintf ( stderr, "Error: dp_algorithm() failed!!!\n" );
-         return ( 1 );	
-       }
+     if ( MAXgap == n - 1 )
+      {
+        if ( ! ( dp_algorithm( G, MAXnumgaps, H, t -> data, n, p -> data, m, scoring_matrix, gap_open_pen, gap_extend_pen ) ) )
+         {
+           fprintf ( stderr, "Error: dp_algorithm() failed!!!\n" );
+           return ( 1 );	
+         }
+      }
+     else
+      {
+        if ( ! ( dp_algorithm_pruned( G, MAXnumgaps, H, t -> data, n, p -> data, m, scoring_matrix, gap_open_pen, gap_extend_pen, MAXgap ) ) )
+         {
+           fprintf ( stderr, "Error: dp_algorithm_pruned() failed!!!\n" );
+           return ( 1 );	
+         }
+      }
     }
    else
     {
-      if ( ! ( dp_algorithm_pruned( G, MAXnumgaps, H, t -> data, n, p -> data, m, scoring_matrix, gap_open_pen, gap_extend_pen, MAXgap ) ) )
-       {
-         fprintf ( stderr, "Error: dp_algorithm_pruned() failed!!!\n" );
-         return ( 1 );	
-       }
+     if ( MAXgap == n - 1 )
+      {
+        if ( ! ( dp_algorithm_lcl( G, MAXnumgaps, H, t -> data, n, p -> data, m, scoring_matrix, gap_open_pen, gap_extend_pen ) ) )
+         {
+           fprintf ( stderr, "Error: dp_algorithm() failed!!!\n" );
+           return ( 1 );	
+         }
+      }
+     else
+      {
+        if ( ! ( dp_algorithm_pruned_lcl( G, MAXnumgaps, H, t -> data, n, p -> data, m, scoring_matrix, gap_open_pen, gap_extend_pen, MAXgap ) ) )
+         {
+           fprintf ( stderr, "Error: dp_algorithm_pruned() failed!!!\n" );
+           return ( 1 );	
+         }
+      }
     }
 
    #if 0
@@ -222,7 +252,8 @@ int main ( int argc, char ** argv)
 
    MINnumgaps = 0;	//to be computed		
    /* finds the optimal alignment based on the matrices scores */
-   opt_solution ( G, MAXnumgaps, n, m, &MAXscore, &start, &MINnumgaps );
+   if ( L == 0 ) opt_solution ( G, MAXnumgaps, n, m, &MAXscore, &istart, &MINnumgaps );
+   if ( L == 1 ) opt_solution_lcl ( G, MAXnumgaps, n, m, &MAXscore, &istart, &jstart, &MINnumgaps );
 
    if( ( gaps_pos = ( unsigned int * ) calloc ( MINnumgaps, sizeof( unsigned int ) ) ) == NULL )
     {
@@ -243,14 +274,23 @@ int main ( int argc, char ** argv)
     }
  
    /* computes the position of the gap */
-   backtracing ( H[MINnumgaps - 1], m, n, start, gaps_pos, MINnumgaps, gaps_len, where );
+   if ( L == 0 ) backtracing ( H[MINnumgaps - 1], m, n, istart, gaps_pos, MINnumgaps, gaps_len, where );
+   if ( L == 1 ) backtracing_lcl ( G[MINnumgaps - 1], m, n, H[MINnumgaps - 1], istart, jstart, gaps_pos, MINnumgaps, gaps_len, where );
 
    /* outputs the results */
-   if ( ! ( results( out_file, t, n, p, m, MAXscore, gaps_pos, MINnumgaps, gaps_len, where, swap, scoring_matrix, gap_open_pen, gap_extend_pen ) ) )
-    {
-      fprintf(stderr, "Error: results() failed!!!\n");
-      return ( 1 );	
-    }
+   if ( L == 0 )
+     if ( ! ( results ( out_file, t, n, p, m, MAXscore, gaps_pos, MINnumgaps, gaps_len, where, swap, scoring_matrix, gap_open_pen, gap_extend_pen, L ) ) )
+      {
+        fprintf(stderr, "Error: results() failed!!!\n");
+        return ( 1 );	
+      }
+
+   if ( L == 1 )
+     if ( ! ( results_lcl ( out_file, t, n, p, m, MAXscore, gaps_pos, MINnumgaps, gaps_len, where, swap, scoring_matrix, gap_open_pen, gap_extend_pen, L ) ) )
+      {
+        fprintf(stderr, "Error: results() failed!!!\n");
+        return ( 1 );	
+      }
 
    for ( i = 0;  i < MAXnumgaps; i++ )
     {

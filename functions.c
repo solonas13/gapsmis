@@ -38,6 +38,7 @@ static struct option long_options[] =
    { "help",               no_argument,       NULL, 'h' },
    { "max-num-gaps",       required_argument, NULL, 'l' },
    { "max-gap",            required_argument, NULL, 'm' },
+   { "local",              required_argument, NULL, 'L' },
    { NULL,                 0,                 NULL, 0   }
  };
 
@@ -59,10 +60,11 @@ int decode_switches ( int argc, char * argv [], struct TSwitch * sw )
    sw -> max_gap        = -1;
    sw -> out_file       = ( char * ) malloc ( 15 * sizeof ( char ) );
    sw -> matrix         = ( char * ) malloc ( 15 * sizeof ( char ) );
+   sw -> L              = 0;
    strcpy ( sw -> out_file, "gapsmis.out" );
    strcpy ( sw -> matrix, "EDNAFULL" );
 
-   while ( ( opt = getopt_long ( argc, argv, "a:b:g:e:o:d:l:m:h", long_options, &oi ) ) != - 1 )
+   while ( ( opt = getopt_long ( argc, argv, "a:b:g:e:o:d:l:m:L:h", long_options, &oi ) ) != - 1 )
     {
       switch ( opt )
        {
@@ -122,6 +124,14 @@ int decode_switches ( int argc, char * argv [], struct TSwitch * sw )
               return ( 0 );
             }
            sw -> max_gap = val;
+           break;
+	 case 'L':
+           val = strtol ( optarg, &ep, 10 );
+           if ( ! ep || ep == optarg )
+            {
+              return ( 0 );
+            }
+           sw -> L = val;
            break;
        }
     }
@@ -1098,7 +1108,7 @@ unsigned int backtracing ( int ** H, unsigned int m, unsigned int n, unsigned in
 }
 
 /* Gives the position of the gap in O(m) time */
-unsigned int backtracing_lcl ( int ** G, unsigned int m, unsigned int n, int ** H, unsigned int istart, unsigned int jstart, unsigned int * gaps_pos, unsigned int l, unsigned int * gaps_len, unsigned int * where )
+unsigned int backtracing_lcl ( double ** G, unsigned int m, unsigned int n, int ** H, unsigned int istart, unsigned int jstart, unsigned int * gaps_pos, unsigned int l, unsigned int * gaps_len, unsigned int * where )
 {
         int i, j, s;
 

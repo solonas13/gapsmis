@@ -66,10 +66,12 @@ void usage ( void )
                      "                                      to this value. (default: 2)\n" );
    fprintf ( stdout, "  -m, --max-gap             <int>     Limit the maximum gap size to this value.\n"
                      "                                      (default: length of the longest sequence\n"
-                     "                                      minus  1)\n\n" );
+                     "                                      minus  1)\n" );
+   fprintf ( stdout, "  -L, --local               <int>     It  can  be  `1'  for  local  alignment.\n"
+                     "                                      (default: `0' for semi-global alignment)\n\n" );
  }
 
-void print_header ( FILE * out, const char * filename, unsigned int matrix, double gap_penalty, double ext_penalty )
+void print_header ( FILE * out, const char * filename, unsigned int matrix, double gap_penalty, double ext_penalty, int L )
  {
    time_t               t;
 
@@ -79,6 +81,8 @@ void print_header ( FILE * out, const char * filename, unsigned int matrix, doub
    fprintf ( out, "# Program: GapsMis\n" );
    fprintf ( out, "# Rundate: %s", ctime ( &t ) );
    fprintf ( out, "# Report file: %s\n", filename );
+   if ( L == 1 ) fprintf ( out, "# Alignment type: Local\n");
+   if ( L == 0 ) fprintf ( out, "# Alignment type: Semi-global\n");
    fprintf ( out, "# Matrix: %s\n", ( matrix ? "BLOSUM62" : "EDNAFULL" ) );
    fprintf ( out, "# Gap penalty: %.3f\n", - gap_penalty );
    fprintf ( out, "# Extend penalty: %.3f\n", - ext_penalty );
@@ -99,7 +103,7 @@ unsigned int results ( const char * filename,    /* output filename */
                        unsigned int swap, 
                        unsigned int matrix,
                        double gap_penalty,
-                       double ext_penalty )
+                       double ext_penalty, int L )
  {
 
    FILE          * output;
@@ -157,7 +161,170 @@ unsigned int results ( const char * filename,    /* output filename */
     }
    
    /* Here we print the header */
-   print_header ( output, filename, matrix, gap_penalty, ext_penalty );
+   print_header ( output, filename, matrix, gap_penalty, ext_penalty, L );
+
+   /* Here we go through the gaps to create the 2 sequences */
+   int g;
+   unsigned int gapsuma = 0;  //currently added gap length in seqa
+   unsigned int gapsumb = 0;  //currently added gap length in seqb
+   for ( g = numgaps - 1; g >=0; g-- )
+    {
+      if ( gaps_len[g] > 0 )
+       {
+	 unsigned int gpos = gaps_pos[g];
+	 unsigned int glen = gaps_len[g];
+         if ( where[g] == 1 )
+          {
+            /* Add the letters before the gap */
+            for ( ; ii < gpos; ii++, aa++ )
+             seqa[aa] = t -> data[ii];
+
+            /* Add the gap */
+            for ( ; aa < ii + gapsuma + glen; aa++ )
+             seqa[aa] = '-';
+
+            gapsuma += glen;
+          }
+         if ( where[g] == 2 )
+          {
+            /* Add the letters before the gap */
+            for ( ; jj < gpos; jj++, bb++ )
+             seqb[bb] = p -> data[jj];
+
+            /* Add the gap */
+            for ( ; bb < jj + gapsumb + glen; bb++ )
+             seqb[bb] = '-';
+
+            gapsumb += glen;
+          }
+       }
+    }
+
+   /* Add what is left from both */
+   for ( ; ii < n; ii++, aa++ )
+     seqa[aa] = t -> data[ii];
+   seqa[aa] = '\0';
+   for ( ; jj < m; jj++, bb++ )
+     seqb[bb] = p -> data[jj];
+   seqb[bb] = '\0';
+
+   unsigned int alignlen = min ( aa, bb); 
+   for ( ; mm < alignlen; mm++ )
+    {
+      if ( seqa[mm] == '-' || seqb[mm] == '-' )
+        mark_mis[mm] = ' ';
+      else if ( seqa[mm] == seqb[mm] )
+        mark_mis[mm] = '|';
+      else 
+	{
+          min_mis++;
+          mark_mis[mm] = '.';
+        }
+    }
+   mark_mis[mm] = '\0';
+
+   free ( t -> data );
+   t -> data = seqa;
+   free ( p -> data );
+   p -> data = seqb;
+
+   if ( ! swap )
+    {       
+      wrap ( t, p, mark_mis, LINE_LNG, output ); 
+    }
+   else
+    {        
+      wrap ( p, t, mark_mis, LINE_LNG, output ); 
+    }
+   
+   fprintf ( output, "\n" );
+   fprintf ( output, "Alignment score: %lf\n", max_score );
+   fprintf ( output, "Number of mismatches: %d\n", min_mis );
+   fprintf ( output, "Number of gaps: %d\n", numgaps );
+   fprintf ( output, "Length of gaps: %d\n", gapslength );
+   
+   if ( fclose ( output ) ) 
+           fprintf ( stderr, "Error: cannot close file %s!!!\n", filename );
+   
+   free ( seqa );
+   free ( seqb );
+   free ( mark_mis );
+
+   return ( 1 );	
+ }
+
+unsigned int results_lcl ( 	const char * filename,    /* output filename */
+                       		struct TSeq * t,          /* text */          
+                       		unsigned int n,           /* length of t */
+                       		struct TSeq * p,          /* pattern */
+                       		unsigned int m,           /* length of p */
+                       		double max_score, 
+                       		unsigned int * gaps_pos, 
+		       		unsigned int l,	
+                       		unsigned int * gaps_len, 
+                       		unsigned int * where, 
+                       		unsigned int swap, 
+                       		unsigned int matrix,
+                       		double gap_penalty,
+                       		double ext_penalty, int L )
+ {
+
+   FILE          * output;
+   unsigned int    min_mis = 0;     //the number of mismatches in the alignment
+
+   char          * seqa;            //sequence a with the inserted gaps 
+   unsigned int	   aa = 0;
+   unsigned int	   ii = 0;
+   char          * seqb;            //sequence b with the inserted gaps 
+   unsigned int	   bb = 0;
+   unsigned int	   jj = 0;
+   char          * mark_mis;        //a string with the mismatches marked as '|' (and the matches as ' ')
+   unsigned int	   mm = 0;
+   
+   unsigned int i;
+
+   /* Here we calculate the number of gaps and their total length */	
+   unsigned int numgaps = 0;			
+   unsigned int gapslength = 0;		
+
+   for ( i = 0; i < l; i ++ )
+    {
+      if ( gaps_len[i] > 0 )
+       {		
+      	 numgaps++;
+      	 gapslength += gaps_len[i];
+       }
+    }
+   //fprintf( stderr, "Score: %.2f Gaps: %d Length: %d\n", max_score, numgaps, gapslength );
+
+   /* dynamic memory allocation for the 3 sequences */
+   if ( ! ( seqa = ( char * ) calloc ( n + gapslength + 1, sizeof ( char ) ) ) )
+    {
+      fprintf ( stderr, "Error: seqa could not be allocated!!!\n" );
+      return ( 0 );
+    }
+ 
+   if ( ! ( seqb = ( char * ) calloc ( n + gapslength + 1, sizeof ( char ) ) ) )
+    {
+      fprintf ( stderr, "Error: seqb could not be allocated!!!\n" );
+      return ( 0 );
+    } 
+   
+   if ( ! ( mark_mis = ( char* ) calloc ( n + gapslength + 1, sizeof( char ) ) ) )
+    {
+      fprintf ( stderr, "Error: mark_mis could not be allocated!!!\n" );
+      return ( 0 );
+    }
+ 
+   /* Here we open the output file */
+   if ( ! ( output = fopen ( filename, "w" ) ) )
+    {
+      fprintf ( stderr, "Error: cannot open file %s!!!\n", filename );
+      return ( 0 );
+    }
+   
+   /* Here we print the header */
+   print_header ( output, filename, matrix, gap_penalty, ext_penalty, L );
 
    /* Here we go through the gaps to create the 2 sequences */
    int g;
