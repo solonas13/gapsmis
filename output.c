@@ -278,10 +278,10 @@ unsigned int results_lcl ( 	const char * filename,    /* output filename */
 
    char          * seqa;            //sequence a with the inserted gaps 
    unsigned int	   aa = 0;
-   unsigned int	   ii = 0;
+   unsigned int	   ii = iend;
    char          * seqb;            //sequence b with the inserted gaps 
    unsigned int	   bb = 0;
-   unsigned int	   jj = 0;
+   unsigned int	   jj = jend;
    char          * mark_mis;        //a string with the mismatches marked as '|' (and the matches as ' ')
    unsigned int	   mm = 0;
    
@@ -368,10 +368,10 @@ unsigned int results_lcl ( 	const char * filename,    /* output filename */
     }
 
    /* Add what is left from both */
-   for ( ; ii < n; ii++, aa++ )
+   for ( ; ii <= istart; ii++, aa++ )
      seqa[aa] = t -> data[ii];
    seqa[aa] = '\0';
-   for ( ; jj < m; jj++, bb++ )
+   for ( ; jj <= jstart; jj++, bb++ )
      seqb[bb] = p -> data[jj];
    seqb[bb] = '\0';
 
