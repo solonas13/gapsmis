@@ -37,6 +37,10 @@ unsigned int dp_algorithm ( double *** G, unsigned int l, int *** H, char * t, u
 
 unsigned int dp_algorithm_pruned ( double *** G, unsigned int l, int *** H, char * t, unsigned int n, char * p, unsigned int m, unsigned int matrix, double gap_open_penalty, double gap_extend_penalty, unsigned int MAXgap );
 
+unsigned int dp_algorithm_lcl ( double *** G, unsigned int l, int *** H, char * t, unsigned int n, char * p, unsigned int m, unsigned int matrix, double gap_open_penalty, double gap_extend_penalty );
+
+unsigned int dp_algorithm_pruned_lcl ( double *** G, unsigned int l, int *** H, char * t, unsigned int n, char * p, unsigned int m, unsigned int matrix, double gap_open_penalty, double gap_extend_penalty, unsigned int MAXgap );
+
 int nuc_delta ( char a, char b );
 
 int pro_delta ( char a, char b );
@@ -47,9 +51,13 @@ unsigned int pro_char_to_index ( char a );
 
 unsigned int opt_solution ( double *** G, unsigned int l, unsigned int n, unsigned int m, double * MAXscore, unsigned int * start, unsigned int * MINnumgaps );
 
+unsigned int opt_solution_lcl ( double *** G, unsigned int l, unsigned int n, unsigned int m, double * MAXscore, unsigned int * istart, unsigned int * jstart,unsigned int * MINnumgaps );
+
 double total_scoring ( unsigned int gap, double current_score, double gap_open_penalty, double gap_extend_penalty );
 
 unsigned int backtracing ( int ** H, unsigned int m, unsigned int n, unsigned int start, unsigned int * gaps_pos, unsigned int l, unsigned int * gaps_len, unsigned int * where );
+
+unsigned int backtracing_lcl ( int ** G, unsigned int m, unsigned int n, int ** H, unsigned int istart, unsigned int jstart, unsigned int * gaps_pos, unsigned int l, unsigned int * gaps_len, unsigned int * where );
 
 unsigned int swap_txt_pat ( struct TSeq ** seqa, unsigned int * n, struct TSeq ** seqb, unsigned int * m );
 

@@ -189,7 +189,7 @@ int main ( int argc, char ** argv)
        }
     }
 
-   #if 1
+   #if 0
    int s;
    for ( s = 0;  s < MAXnumgaps; s++ )
         {
