@@ -15,7 +15,7 @@ Example 2.
 
 You can run an example for local alignment via
 
-$ ./gapsmis -a ./data/seqa.fa -b ./data/seqb.fa
+$ ./gapsmis -a ./data/lseqa.fa -b ./data/lseqb.fa -L 1 -l 3
 
 You can see the generated output via
 
