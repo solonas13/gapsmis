@@ -52,8 +52,12 @@ void print_header ( FILE * out, const char * filename, unsigned int matrix, doub
 
 void wrap ( struct TSeq * s1, struct TSeq * s2, const char * diff, int len, FILE * output );
 
+void wrap_lcl ( struct TSeq * s1, unsigned int ioffset, struct TSeq * s2, unsigned int joffset, const char * diff, int len, FILE * output );
+
 void wrap2 ( struct TSeq * s1, struct TSeq * s2, const char * diff, int len, FILE * output );
 
 void print_line ( const char * s, int start, int stop, int * nr_gaps, int end, int diff, FILE * output, const char * header );
+
+void print_line_lcl ( const char * s, int start, int stop, int * nr_gaps, int end, int diff, FILE * output, const char * header, int offset );
 
 #endif

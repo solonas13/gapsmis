@@ -277,13 +277,16 @@ unsigned int results_lcl ( 	const char * filename,    /* output filename */
    unsigned int    min_mis = 0;     //the number of mismatches in the alignment
 
    char          * seqa;            //sequence a with the inserted gaps 
-   unsigned int	   aa = 0;
-   unsigned int	   ii = iend;
+   unsigned int	   aa;
+   unsigned int	   ii;
    char          * seqb;            //sequence b with the inserted gaps 
-   unsigned int	   bb = 0;
-   unsigned int	   jj = jend;
+   unsigned int	   bb;
+   unsigned int	   jj;
    char          * mark_mis;        //a string with the mismatches marked as '|' (and the matches as ' ')
    unsigned int	   mm = 0;
+   char          * Cmark_mis; 	//cropped sequences      
+   char          * Cseqa;        
+   char          * Cseqb;        
    
    unsigned int i;
 
@@ -299,7 +302,6 @@ unsigned int results_lcl ( 	const char * filename,    /* output filename */
       	 gapslength += gaps_len[i];
        }
     }
-   //fprintf( stderr, "Score: %.2f Gaps: %d Length: %d\n", max_score, numgaps, gapslength );
 
    /* dynamic memory allocation for the 3 sequences */
    if ( ! ( seqa = ( char * ) calloc ( n + gapslength + 1, sizeof ( char ) ) ) )
@@ -319,6 +321,24 @@ unsigned int results_lcl ( 	const char * filename,    /* output filename */
       fprintf ( stderr, "Error: mark_mis could not be allocated!!!\n" );
       return ( 0 );
     }
+   
+   if ( ! ( Cseqa = ( char * ) calloc ( n + gapslength + 1, sizeof ( char ) ) ) )
+    {
+      fprintf ( stderr, "Error: seqa could not be allocated!!!\n" );
+      return ( 0 );
+    }
+ 
+   if ( ! ( Cseqb = ( char * ) calloc ( n + gapslength + 1, sizeof ( char ) ) ) )
+    {
+      fprintf ( stderr, "Error: seqb could not be allocated!!!\n" );
+      return ( 0 );
+    } 
+   
+   if ( ! ( Cmark_mis = ( char* ) calloc ( n + gapslength + 1, sizeof( char ) ) ) )
+    {
+      fprintf ( stderr, "Error: mark_mis could not be allocated!!!\n" );
+      return ( 0 );
+    }
  
    /* Here we open the output file */
    if ( ! ( output = fopen ( filename, "w" ) ) )
@@ -334,6 +354,7 @@ unsigned int results_lcl ( 	const char * filename,    /* output filename */
    int g;
    unsigned int gapsuma = 0;  //currently added gap length in seqa
    unsigned int gapsumb = 0;  //currently added gap length in seqb
+   ii = aa = jj = bb = 0;
    for ( g = numgaps - 1; g >=0; g-- )
     {
       if ( gaps_len[g] > 0 )
@@ -368,14 +389,15 @@ unsigned int results_lcl ( 	const char * filename,    /* output filename */
     }
 
    /* Add what is left from both */
-   for ( ; ii <= istart; ii++, aa++ )
+   for ( ; ii < istart; ii++, aa++ )
      seqa[aa] = t -> data[ii];
    seqa[aa] = '\0';
-   for ( ; jj <= jstart; jj++, bb++ )
+   for ( ; jj < jstart; jj++, bb++ )
      seqb[bb] = p -> data[jj];
    seqb[bb] = '\0';
 
-   unsigned int alignlen = min ( aa, bb); 
+   /* Here we create the match/mismatch sequence */
+   unsigned int alignlen = min ( aa, bb ); 
    for ( ; mm < alignlen; mm++ )
     {
       if ( seqa[mm] == '-' || seqb[mm] == '-' )
@@ -384,24 +406,65 @@ unsigned int results_lcl ( 	const char * filename,    /* output filename */
         mark_mis[mm] = '|';
       else 
 	{
-          min_mis++;
           mark_mis[mm] = '.';
         }
     }
    mark_mis[mm] = '\0';
 
+   #if 0
+   fprintf ( stderr, "%s\n", seqa );
+   fprintf ( stderr, "%s\n", mark_mis );
+   fprintf ( stderr, "%s\n", seqb ); getchar();
+   #endif
+
+   /* Crop the alignment -- Checking that everything is o.k */
+   unsigned int first = 0;
+   unsigned int last = 0;
+   unsigned int icounter = 0; // We use a counter to count the number of characters in one of the the alignment sequences
+   for ( ii = 0; ii < mm; ii++ )
+   {
+     if ( seqa[i] != '-' ) // If indeed is a character and not a gap we increase the counter
+       icounter++;
+     if ( icounter >= iend && mark_mis[ii] == '|' ) // If the number of characters read is equal to where the traceback ends then we have found the pos of the first aligned pair
+      {
+        first = last = ii;
+        break;
+      }
+   }
+   for ( ; i < mm; i++ )
+   {
+     if ( mark_mis[i] == '|' ) // The position of the last aligner pair is simply the last match in the match/mismatch sequence
+        last = i;
+   }
+
+   // Now we are ready to crop the sequences based on first and last variables -- We also count the mismatches
+   aa = bb = mm = 0;
+   for ( ii = first; ii <= last; ii++ )
+    { 
+         Cseqa[aa]=seqa[ii];
+         aa++;
+         Cseqb[bb]=seqb[ii];
+         bb++;
+         Cmark_mis[mm]=mark_mis[ii];
+         mm++;
+         if ( mark_mis[ii] == '.' ) min_mis++;
+    }
+
+   iend = first;
+   jend = first;
+
    free ( t -> data );
-   t -> data = seqa;
+   t -> data = Cseqa;
    free ( p -> data );
-   p -> data = seqb;
+   p -> data = Cseqb;
 
    if ( ! swap )
     {       
-      wrap ( t, p, mark_mis, LINE_LNG, output ); 
+      wrap_lcl ( t, iend, p, jend, Cmark_mis, LINE_LNG, output ); 
     }
    else
     {        
-      wrap ( p, t, mark_mis, LINE_LNG, output ); 
+      wrap_lcl ( p, jend, t, iend, Cmark_mis, LINE_LNG, output ); 
     }
    
    fprintf ( output, "\n" );
@@ -416,6 +479,9 @@ unsigned int results_lcl ( 	const char * filename,    /* output filename */
    free ( seqa );
    free ( seqb );
    free ( mark_mis );
+   free ( Cseqa );
+   free ( Cseqb );
+   free ( Cmark_mis );
 
    return ( 1 );	
  }
@@ -519,7 +585,42 @@ void print_line ( const char * s, int start, int stop, int * nr_gaps, int end, i
    fprintf ( output, "\n" );
  }
 
-/* Wrap two sequences s1 and s2 including the differences (diff) so that the
+void print_line_lcl ( const char * s, int start, int stop, int * nr_gaps, int end, int diff, FILE * output, const char * header, int offset )
+ {
+   int                  k;
+
+   if ( start == stop ) return;
+
+   if ( diff )
+    {
+      fprintf ( output, "%25s", "" );
+    }
+   else
+    {
+     if ( header )
+       fprintf ( output, "%-13.13s %10d ", header, start + 1 - *nr_gaps + offset );
+     else
+       fprintf ( output, "%-13.13s %10d ", "", start + 1 - *nr_gaps + offset );
+    }
+
+   for ( ; start < stop; ++ start )
+    {
+      fputc ( s[start], output );
+      if ( s[start] == '-' && ! diff ) ++ ( *nr_gaps );
+    }
+
+   if ( stop != end )
+    {
+      for ( k = stop; k < end; ++ k )
+       {
+         fputc ( ' ', output );
+       }
+    }
+   if ( ! diff )  fprintf ( output, " %-10d", start - *nr_gaps + offset );
+   fprintf ( output, "\n" );
+ }
+
+/* wrap two sequences s1 and s2 including the differences (diff) so that the
    line width is at most len
 */
 void wrap ( struct TSeq * s1, struct TSeq * s2, const char * diff, int len, FILE * output )
@@ -545,24 +646,72 @@ void wrap ( struct TSeq * s1, struct TSeq * s2, const char * diff, int len, FILE
    nr_lines = ( n > m ? m : n ) / len;
    for ( i = 0; i < nr_lines; ++ i )
     {
-      /* Shortest sequence */
+      /* shortest sequence */
       print_line ( s1 -> data, i * len, ( i + 1 ) * len, &nr_gaps_a, ( i + 1 ) * len, 0, output, s1 -> header );
 
-      /* Difference */
+      /* difference */
       print_line ( diff, i * len, ( i + 1 ) * len, NULL, ( i + 1 ) * len, 1, output, NULL );
 
-      /* Longest sequence */
+      /* longest sequence */
       print_line ( s2 -> data, i * len, ( i + 1 ) * len, &nr_gaps_b, ( i + 1 ) * len, 0, output, s2 -> header );
       fprintf ( output, "\n" );
     }
 
-   /* Last line of first sequence and difference */
+   /* last line of first sequence and difference */
    j = i * len;
    if ( j < m || j < n ) 
     {
       print_line ( s1 -> data, i * len, min ( m, n ), &nr_gaps_a, ( i + 1 ) * len, 0, output, s1 -> header );
       print_line ( diff, i * len, ( m < n ) ? m : n, NULL, ( i + 1 ) * len, 1, output, NULL );
       print_line ( s2 -> data, i * len, min ( n, m), &nr_gaps_b, ( i + 1 ) * len, 0, output, s2 -> header );
+    }
+   
+ }
+
+/* wrap two sequences s1 and s2 including the differences (diff) so that the
+   line width is at most len
+*/
+void wrap_lcl ( struct TSeq * s1, unsigned int ioffset, struct TSeq * s2, unsigned int joffset, const char * diff, int len, FILE * output )
+ {
+   int                  m, n, i, j;
+   int                  nr_gaps_a;
+   int                  nr_gaps_b;
+   int                  nr_lines;
+
+   if ( ! len ) return;
+
+   n = strlen ( s1 -> data );
+   m = strlen ( s2 -> data );
+
+   if ( ! n && ! m ) return;
+
+   i         = 0;
+   j         = 0;
+   nr_gaps_a = 0;
+   nr_gaps_b = 0;
+
+   //nr_lines = m / len;
+   nr_lines = ( n > m ? m : n ) / len;
+   for ( i = 0; i < nr_lines; ++ i )
+    {
+      /* shortest sequence */
+      print_line_lcl ( s1 -> data, i * len, ( i + 1 ) * len, &nr_gaps_a, ( i + 1 ) * len, 0, output, s1 -> header, ioffset );
+
+      /* difference */
+      print_line ( diff, i * len, ( i + 1 ) * len, NULL, ( i + 1 ) * len, 1, output, NULL );
+
+      /* longest sequence */
+      print_line_lcl ( s2 -> data, i * len, ( i + 1 ) * len, &nr_gaps_b, ( i + 1 ) * len, 0, output, s2 -> header, joffset );
+      fprintf ( output, "\n" );
+    }
+
+   /* last line of first sequence and difference */
+   j = i * len;
+   if ( j < m || j < n ) 
+    {
+      print_line_lcl ( s1 -> data, i * len, min ( m, n ), &nr_gaps_a, ( i + 1 ) * len, 0, output, s1 -> header, ioffset );
+      print_line ( diff, i * len, ( m < n ) ? m : n, NULL, ( i + 1 ) * len, 1, output, NULL );
+      print_line_lcl ( s2 -> data, i * len, min ( n, m), &nr_gaps_b, ( i + 1 ) * len, 0, output, s2 -> header, joffset );
     }
    
  }

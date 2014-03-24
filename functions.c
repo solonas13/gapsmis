@@ -560,7 +560,7 @@ unsigned int dp_algorithm_lcl ( double *** G, unsigned int l, int *** H, char * 
 			{
 				double u = G[0][i-1][j-1] + matching_score;
 				double v = total_scoring( j - i, G[0][i][i], gap_open_penalty, gap_extend_penalty );
-				G[0][i][j] = max ( u, v );
+				G[0][i][j] = max ( max ( u, v ), 0 );
 
 				if ( v > u )
 					H[0][i][j] = - ( j - i );	
@@ -571,7 +571,7 @@ unsigned int dp_algorithm_lcl ( double *** G, unsigned int l, int *** H, char * 
 			{
 				double u = G[0][i-1][j-1] + matching_score;
 				double v = total_scoring( i - j, G[0][j][j], gap_open_penalty, gap_extend_penalty );
-				G[0][i][j] = max ( u, v );
+				G[0][i][j] = max ( max ( u, v ), 0 );
 
 				if ( v > u )
 					H[0][i][j] = ( i - j );		
@@ -581,7 +581,7 @@ unsigned int dp_algorithm_lcl ( double *** G, unsigned int l, int *** H, char * 
 			}
 			else if ( i == j )
 			{
-				G[0][i][j] = G[0][i-1][j-1] + matching_score;
+				G[0][i][j] = max ( G[0][i-1][j-1] + matching_score, 0 );
 				H[0][i][j] = 0;
 			}
 		}
@@ -625,7 +625,7 @@ unsigned int dp_algorithm_lcl ( double *** G, unsigned int l, int *** H, char * 
                                 {
                                         if( v > u )
                                         {
-                                                G[s][i][j] = v;
+                                                G[s][i][j] = max ( v, 0 );
                                                 if ( ! ( update_ver ) )
                                                         H[s][i][j] = i - r;
                                                 else
@@ -633,7 +633,7 @@ unsigned int dp_algorithm_lcl ( double *** G, unsigned int l, int *** H, char * 
                                         }
                                         else
                                         {
-                                                G[s][i][j] = u;
+                                                G[s][i][j] = max ( u, 0 );
                                                 if ( ! ( update_hor ) )
                                                         H[s][i][j] = - ( j - minhval[i] );
                                                 else
@@ -644,7 +644,7 @@ unsigned int dp_algorithm_lcl ( double *** G, unsigned int l, int *** H, char * 
                                 {
                                         if( v > w )
                                         {
-                                                G[s][i][j] = v;
+                                                G[s][i][j] = max ( v, 0 );
                                                 if ( ! ( update_ver ) )
                                                         H[s][i][j] = i - r;
                                                 else
@@ -652,7 +652,7 @@ unsigned int dp_algorithm_lcl ( double *** G, unsigned int l, int *** H, char * 
                                         }
                                         else
                                         {
-                                                G[s][i][j] = w;
+                                                G[s][i][j] = max ( w, 0 );
                                                 H[s][i][j] = 0; //there is no gap
                                         }
                                 }
@@ -702,7 +702,7 @@ unsigned int dp_algorithm_pruned_lcl ( double *** G, unsigned int l, int *** H, 
 			{
 				double u = G[0][i-1][j-1] + matching_score;
 				double v = total_scoring( j - i, G[0][i][i], gap_open_penalty, gap_extend_penalty );
-				G[0][i][j] = max ( u, v );
+				G[0][i][j] = max ( max ( u, v ), 0 );
 
 				if ( v > u )
 					H[0][i][j] = - ( j - i );	
@@ -713,7 +713,7 @@ unsigned int dp_algorithm_pruned_lcl ( double *** G, unsigned int l, int *** H, 
 			{
 				double u = G[0][i-1][j-1] + matching_score;
 				double v = total_scoring( i - j, G[0][j][j], gap_open_penalty, gap_extend_penalty );
-				G[0][i][j] = max ( u, v );
+				G[0][i][j] = max ( max ( u, v ), 0 );
 
 				if ( v > u )
 					H[0][i][j] = ( i - j );		
@@ -723,7 +723,7 @@ unsigned int dp_algorithm_pruned_lcl ( double *** G, unsigned int l, int *** H, 
 			}
 			else if ( i == j )
 			{
-				G[0][i][j] = G[0][i-1][j-1] + matching_score;
+				G[0][i][j] = max ( G[0][i-1][j-1] + matching_score, 0 );
 				H[0][i][j] = 0;
 			}
 		}
@@ -770,7 +770,7 @@ unsigned int dp_algorithm_pruned_lcl ( double *** G, unsigned int l, int *** H, 
                                 {
                                         if( v > u )
                                         {
-                                                G[s][i][j] = v;
+                                                G[s][i][j] = max ( v, 0 );
                                                 if ( ! ( update_hor ) )
                                                         H[s][i][j] = - ( j - r );
                                                 else
@@ -778,7 +778,7 @@ unsigned int dp_algorithm_pruned_lcl ( double *** G, unsigned int l, int *** H, 
                                         }
                                         else
                                         {
-                                                G[s][i][j] = u;
+                                                G[s][i][j] = max ( u, 0 );
                                                 if ( ! ( update_ver ) )
                                                         H[s][i][j] = + ( i - minvval[j] );
                                                 else
@@ -789,7 +789,7 @@ unsigned int dp_algorithm_pruned_lcl ( double *** G, unsigned int l, int *** H, 
                                 {
                                         if( v > w )
                                         {
-                                                G[s][i][j] = v;
+                                                G[s][i][j] = max ( v, 0 );
                                                 if ( ! ( update_hor ) )
                                                         H[s][i][j] = - ( j - r );
                                                 else
@@ -797,7 +797,7 @@ unsigned int dp_algorithm_pruned_lcl ( double *** G, unsigned int l, int *** H, 
                                         }
                                         else
                                         {
-                                                G[s][i][j] = w;
+                                                G[s][i][j] = max ( w, 0 );
                                                 H[s][i][j] = 0; //there is no gap
                                         }
                                 }
@@ -1140,14 +1140,13 @@ unsigned int backtracing_lcl ( double ** G, unsigned int m, unsigned int n, int 
                         }
                         s++;
                 }
-		if ( G[i][j] > 0 )
+                if ( G[i][j] > 0 )
 		{
 			( * iend ) = i;                //backtrace up to cell G[s,i,j]
 			( * jend ) = j;
 		}
 		else
-			break;                
-		
+			break;
         }
         return 1;
 }
