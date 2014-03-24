@@ -274,7 +274,6 @@ unsigned int results_lcl ( 	const char * filename,    /* output filename */
  {
 
    FILE          * output;
-   unsigned int    min_mis = 0;     //the number of mismatches in the alignment
 
    char          * seqa;            //sequence a with the inserted gaps 
    unsigned int	   aa;
@@ -283,7 +282,9 @@ unsigned int results_lcl ( 	const char * filename,    /* output filename */
    unsigned int	   bb;
    unsigned int	   jj;
    char          * mark_mis;        //a string with the mismatches marked as '|' (and the matches as ' ')
+   unsigned int    min_mis = 0;     //the number of mismatches in the alignment
    unsigned int	   mm = 0;
+
    char          * Cmark_mis; 	//cropped sequences      
    char          * Cseqa;        
    char          * Cseqb;        
@@ -355,7 +356,7 @@ unsigned int results_lcl ( 	const char * filename,    /* output filename */
    unsigned int gapsuma = 0;  //currently added gap length in seqa
    unsigned int gapsumb = 0;  //currently added gap length in seqb
    ii = aa = jj = bb = 0;
-   for ( g = numgaps - 1; g >=0; g-- )
+   for ( g = numgaps - 1; g >= 0; g-- )
     {
       if ( gaps_len[g] > 0 )
        {
@@ -396,13 +397,27 @@ unsigned int results_lcl ( 	const char * filename,    /* output filename */
      seqb[bb] = p -> data[jj];
    seqb[bb] = '\0';
 
+   #if 0
+   fprintf ( stderr, "%s\n", seqa );
+   fprintf ( stderr, "%s\n", seqb ); getchar();
+   #endif
+
+   /* Crop the alignment */
+   strncat ( &Cseqa[0], &seqa[iend-1], strlen(seqa) - iend + 1 );
+   strncat ( &Cseqb[0], &seqb[jend-1], strlen(seqb) - jend + 1 );
+
+   #if 0
+   fprintf ( stderr, "%s\n", Cseqa );
+   fprintf ( stderr, "%s\n", Cseqb ); getchar();
+   #endif
+
    /* Here we create the match/mismatch sequence */
-   unsigned int alignlen = min ( aa, bb ); 
+   unsigned int alignlen = min ( strlen( Cseqa ), strlen( Cseqb ) ); 
    for ( ; mm < alignlen; mm++ )
     {
-      if ( seqa[mm] == '-' || seqb[mm] == '-' )
+      if ( Cseqa[mm] == '-' || Cseqb[mm] == '-' )
         mark_mis[mm] = ' ';
-      else if ( seqa[mm] == seqb[mm] )
+      else if ( Cseqa[mm] == Cseqb[mm] )
         mark_mis[mm] = '|';
       else 
 	{
@@ -411,21 +426,12 @@ unsigned int results_lcl ( 	const char * filename,    /* output filename */
     }
    mark_mis[mm] = '\0';
 
-   #if 0
-   fprintf ( stderr, "%s\n", seqa );
-   fprintf ( stderr, "%s\n", mark_mis );
-   fprintf ( stderr, "%s\n", seqb ); getchar();
-   #endif
 
-   /* Crop the alignment -- Checking that everything is o.k */
    unsigned int first = 0;
    unsigned int last = 0;
-   unsigned int icounter = 0; // We use a counter to count the number of characters in one of the the alignment sequences
    for ( ii = 0; ii < mm; ii++ )
    {
-     if ( seqa[i] != '-' ) // If indeed is a character and not a gap we increase the counter
-       icounter++;
-     if ( icounter >= iend && mark_mis[ii] == '|' ) // If the number of characters read is equal to where the traceback ends then we have found the pos of the first aligned pair
+     if ( mark_mis[ii] == '|' ) // If the number of characters read is equal to where the traceback ends then we have found the pos of the first aligned pair
       {
         first = last = ii;
         break;
@@ -441,17 +447,23 @@ unsigned int results_lcl ( 	const char * filename,    /* output filename */
    aa = bb = mm = 0;
    for ( ii = first; ii <= last; ii++ )
     { 
-         Cseqa[aa]=seqa[ii];
+         Cseqa[aa]=Cseqa[ii];
          aa++;
-         Cseqb[bb]=seqb[ii];
+         Cseqb[bb]=Cseqb[ii];
          bb++;
          Cmark_mis[mm]=mark_mis[ii];
+         if ( Cmark_mis[mm] == '.' ) min_mis++;
          mm++;
-         if ( mark_mis[ii] == '.' ) min_mis++;
     }
+   Cseqa[aa] = 0;
+   Cseqb[bb] = 0;
+   Cmark_mis[mm] = 0;
 
-   iend = first;
-   jend = first;
+   #if 0
+   fprintf ( stderr, "%s\n", Cseqa );
+   fprintf ( stderr, "%s\n", Cmark_mis );
+   fprintf ( stderr, "%s\n", Cseqb ); getchar();
+   #endif
 
    free ( t -> data );
    t -> data = Cseqa;
@@ -460,11 +472,11 @@ unsigned int results_lcl ( 	const char * filename,    /* output filename */
 
    if ( ! swap )
     {       
-      wrap_lcl ( t, iend, p, jend, Cmark_mis, LINE_LNG, output ); 
+      wrap_lcl ( t, iend - 1, p, jend - 1, Cmark_mis, LINE_LNG, output ); 
     }
    else
     {        
-      wrap_lcl ( p, jend, t, iend, Cmark_mis, LINE_LNG, output ); 
+      wrap_lcl ( p, jend - 1, t, iend - 1, Cmark_mis, LINE_LNG, output ); 
     }
    
    fprintf ( output, "\n" );

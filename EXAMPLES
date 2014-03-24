@@ -1,7 +1,7 @@
 Example 1.
 ----------
 
-After compiling GapsMis, you can run an example via
+After compiling GapsMis, you can run an example for global alignment via
 
 $ ./gapsmis -a ./data/seqa.fa -b ./data/seqb.fa
 
@@ -11,6 +11,18 @@ $ cat gapsmis.out
 
 
 Example 2.
+----------
+
+You can run an example for local alignment via
+
+$ ./gapsmis -a ./data/seqa.fa -b ./data/seqb.fa
+
+You can see the generated output via
+
+$ cat gapsmis.out
+
+
+Example 3.
 ----------
 
 Change to directory `exp' and follow the instructions given
