@@ -1113,8 +1113,10 @@ unsigned int backtracing_lcl ( double ** G, unsigned int m, unsigned int n, int 
         int i, j, s;
 
         i = istart; j = jstart; s = 0;        //we start backtracing from the last column
+	( * iend ) = i;                
+	( * jend ) = j;
 
-        while ( i >= 0 && j >= 0 && G[i][j] > 0 )
+        while ( i >= 0 && j >= 0 )
         {
                 if ( H[i][j] == 0 )
                 {
@@ -1138,8 +1140,13 @@ unsigned int backtracing_lcl ( double ** G, unsigned int m, unsigned int n, int 
                         }
                         s++;
                 }
-		( * iend ) = i;                //backtrace up to cell G[s,i,j]
-		( * jend ) = j;                
+		if ( G[i][j] > 0 )
+		{
+			( * iend ) = i;                //backtrace up to cell G[s,i,j]
+			( * jend ) = j;
+		}
+		else
+			break;                
 		
         }
         return 1;
