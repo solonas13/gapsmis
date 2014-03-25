@@ -67,8 +67,8 @@ void usage ( void )
    fprintf ( stdout, "  -m, --max-gap             <int>     Limit the maximum gap size to this value.\n"
                      "                                      (default: length of the longest sequence\n"
                      "                                      minus  1)\n" );
-   fprintf ( stdout, "  -L, --local               <int>     It  can  be  `1'  for  local  alignment.\n"
-                     "                                      (default: `0' for semi-global alignment)\n\n" );
+   fprintf ( stdout, "  -L, --local               <int>     It  can  be  1 for local  alignment or 0\n"
+                     "                                      for semi-global alignment. (default: 0)\n\n" );
  }
 
 void print_header ( FILE * out, const char * filename, unsigned int matrix, double gap_penalty, double ext_penalty, int L )
