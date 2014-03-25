@@ -28,10 +28,10 @@
 
   $ python needle_bench.py 10 0.5 10000 
 
-6. Evaluate the accuracy of GapsMis-L via
+8. Evaluate the accuracy of GapsMis-L via
 
   $ python gapsmisl_bench.py 10.0 0.5 2 10000
 
-7. Evaluate the accuracy of EMBOSS water via
+9. Evaluate the accuracy of EMBOSS water via
 
   $ python water_bench.py 10 0.5 10000 
