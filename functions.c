@@ -1011,7 +1011,7 @@ Note:   double gap_open_penalty, double gap_extend_penalty, double gap_open_offs
 */
 unsigned int opt_solution_lcl ( double *** G, unsigned int l, unsigned int n, unsigned int m, double * MAXscore, unsigned int * istart, unsigned int * jstart,unsigned int * MINnumgaps )
 {
-        double score = -DBL_MAX;
+        double score = DBL_MIN;
         unsigned int i, j ,s;
 
         for ( s = 0; s < l ; s++ )
@@ -1140,7 +1140,7 @@ unsigned int backtracing_lcl ( double ** G, unsigned int m, unsigned int n, int 
                         }
                         s++;
                 }
-                if ( G[i][j] > 0 )
+                if ( G[i][j] > 0 && s <= l )
 		{
 			( * iend ) = i;                //backtrace up to cell G[s,i,j]
 			( * jend ) = j;

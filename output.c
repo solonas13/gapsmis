@@ -350,6 +350,11 @@ unsigned int results_lcl ( 	const char * filename,    /* output filename */
    
    /* Here we print the header */
    print_header ( output, filename, matrix, gap_penalty, ext_penalty, L );
+ 
+   #if 0
+   fprintf ( stderr, "%s\n", t->data );
+   fprintf ( stderr, "%s\n", p->data ); getchar();
+   #endif
 
    /* Here we go through the gaps to create the 2 sequences */
    int g;
@@ -469,6 +474,8 @@ unsigned int results_lcl ( 	const char * filename,    /* output filename */
    t -> data = Cseqa;
    free ( p -> data );
    p -> data = Cseqb;
+   iend = iend + first;
+   jend = jend + first;
 
    if ( ! swap )
     {       
