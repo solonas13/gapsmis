@@ -1124,6 +1124,7 @@ unsigned int backtracing_lcl ( double ** G, unsigned int m, unsigned int n, int 
                 }
                 else
                 {
+			if ( s == l ) break;
                         if ( H[i][j] < 0 )      //the gap is inserted in the text
                         {
                                 gaps_pos[s] = i;
@@ -1140,7 +1141,7 @@ unsigned int backtracing_lcl ( double ** G, unsigned int m, unsigned int n, int 
                         }
                         s++;
                 }
-                if ( G[i][j] > 0 && s <= l )
+                if ( G[i][j] > 0 )
 		{
 			( * iend ) = i;                //backtrace up to cell G[s,i,j]
 			( * jend ) = j;
