@@ -7,7 +7,7 @@
 #define         GAP_TYPE_INSERTION              0
 #define         GAP_TYPE_DELETION               1
 #define         GAP_TYPE_SNP                    2
-#define         GAP_RATE                        2.4*10E-5
+#define         GAP_RATE                        5.7*10E-6
 #define         MAX_GAP_SIZE                    27
 #define         GAP_INS_RATE                    0.42
 #define         GAP_DEL_RATE                    0.58

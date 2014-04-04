@@ -382,6 +382,119 @@ unsigned int dp_algorithm ( double *** G, unsigned int l, int *** H, char * t, u
 }
 
 /*
+The dynamic programming algorithm for calculating matrices G and H
+*/
+unsigned int dp_algorithm_lcl ( double *** G, unsigned int l, int *** H, char * t, unsigned int n, char * p, unsigned int m, unsigned int matrix, double gap_open_penalty, double gap_extend_penalty )
+{
+	int i;
+	int j;
+	int s;
+	double matching_score = 0;
+
+        for( s = 0; s < l + 1; s++ )		//Initialisations
+		for( i = 0; i < n + 1 ; i++ )
+		{
+			G[s][i][0] = 0;
+			H[s][i][0] = 0;
+		}
+
+        for ( s = 0; s < l + 1; s++ )
+		for( j = 0; j < m + 1 ; j++ )
+		{
+			G[s][0][j] = 0;
+			H[s][0][j] = 0;
+		}
+
+	s = 0;
+	for( i = 1; i < n + 1 ; i++ )		//Compute matrix G[0] and H[0] 
+		for( j = 1; j < m + 1; j++ )
+		{
+			matching_score = ( matrix ? pro_delta( t[i - 1], p[j - 1] ) : nuc_delta( t[i - 1], p[j - 1] ) ) ;
+			if ( matching_score == ERR )
+				return 0;
+			G[s][i][j] = max ( G[s][i-1][j-1] + matching_score, 0 );
+			H[s][i][j] = 0;
+		}
+
+        for ( s = 1;  s < l + 1; s++ )      //Compute matrix H[s] and G[s], for all s = 1,...,l-1
+        {
+                int * maxhval;   //store minimum from edge of matrix
+                if( ( maxhval = ( int * ) calloc( ( n + 1 ), sizeof( int ) ) ) == NULL )
+                {
+                        fprintf( stderr, " Error: memory could not be allocated!!!\n");
+                        return ( 0 );
+                }
+                for( j = 1; j < m + 1; j++ )
+                {
+                        int r = 0;
+                        for( i = 1; i < n + 1; i++ )
+                        {
+				matching_score = ( matrix ? pro_delta( t[i - 1], p[j - 1] ) : nuc_delta( t[i - 1], p[j - 1] ) ) ;
+				if ( matching_score == ERR )
+					return 0;
+	
+                                unsigned int update_ver = 0;
+                                if( G[s - 1][r][j] < G[s - 1][i][j] )
+                                {
+                                       	r = i;
+                                       	update_ver = 1;
+                                }
+
+                                unsigned int update_hor = 0;
+                                if( G[s - 1][i][maxhval[i]] < G[s - 1][i][j] )
+                                {
+                                       	maxhval[i] = j;
+                                       	update_hor = 1;
+                                }
+
+				double u = max ( total_scoring( j - maxhval[i], G[s - 1][i][maxhval[i]], gap_open_penalty, gap_extend_penalty ), 0 );
+				double v = max ( total_scoring( i - r, G[s - 1][r][j], gap_open_penalty, gap_extend_penalty ), 0 );
+				double w = max ( G[s][i - 1][j - 1] + matching_score, 0 );
+
+                                if( u > w )
+                                {
+                                        if( v > u )
+                                        {
+                                                G[s][i][j] = v;
+                                                if ( ! ( update_ver ) )
+                                                        H[s][i][j] = i - r;
+                                                else
+                                                        H[s][i][j] = H[s - 1][i][j];
+                                        }
+                                        else
+                                        {
+                                                G[s][i][j] = u;
+                                                if ( ! ( update_hor ) )
+                                                        H[s][i][j] = - ( j - maxhval[i] );
+                                                else
+                                                        H[s][i][j] = H[s - 1][i][j];
+                                        }
+                                }
+                                else
+                                {
+                                        if( v > w )
+                                        {
+                                                G[s][i][j] = v;
+                                                if ( ! ( update_ver ) )
+                                                        H[s][i][j] = i - r;
+                                                else
+                                                        H[s][i][j] = H[s - 1][i][j];
+                                        }
+                                        else
+                                        {
+                                                G[s][i][j] = w;
+                                                H[s][i][j] = 0; //there is no gap
+                                        }
+                                }
+                        }
+                }
+                free ( maxhval );
+        }
+
+	return 1;
+}
+
+/*
 The dynamic programming algorithm for calculating pruned matrices G and H
 */
 unsigned int dp_algorithm_pruned ( double *** G, unsigned int l, int *** H, char * t, unsigned int n, char * p, unsigned int m, unsigned int matrix, double gap_open_penalty, double gap_extend_penalty, unsigned int MAXgap )
@@ -529,7 +642,7 @@ unsigned int dp_algorithm_pruned ( double *** G, unsigned int l, int *** H, char
 /*
 The dynamic programming algorithm for calculating matrices G and H
 */
-unsigned int dp_algorithm_lcl ( double *** G, unsigned int l, int *** H, char * t, unsigned int n, char * p, unsigned int m, unsigned int matrix, double gap_open_penalty, double gap_extend_penalty )
+unsigned int dp_algorithm_lcl2 ( double *** G, unsigned int l, int *** H, char * t, unsigned int n, char * p, unsigned int m, unsigned int matrix, double gap_open_penalty, double gap_extend_penalty )
 {
 	int i;
 	int j;
@@ -540,14 +653,14 @@ unsigned int dp_algorithm_lcl ( double *** G, unsigned int l, int *** H, char * 
 		for( i = 0; i < n + 1 ; i++ )
 		{
 			G[s][i][0] = 0;
-			H[s][i][0] = i;
+			H[s][i][0] = 0;
 		}
 
         for ( s = 0; s < l; s++ )
 		for( j = 0; j < m + 1 ; j++ )
 		{
 			G[s][0][j] = 0;
-			H[s][0][j] = -j;
+			H[s][0][j] = 0;
 		}
 
 	for( i = 1; i < n + 1 ; i++ )		//Compute matrix G[0] and H[0] 
@@ -679,14 +792,14 @@ unsigned int dp_algorithm_pruned_lcl ( double *** G, unsigned int l, int *** H, 
 		for( i = 0; i < n + 1 ; i++ )
 		{
 			G[s][i][0] = 0;
-			H[s][i][0] = i;
+			H[s][i][0] = 0;
 		}
 
         for ( s = 0; s < l; s++ )
 		for( j = 0; j < m + 1 ; j++ )
 		{
 			G[s][0][j] = 0;
-			H[s][0][j] = -j;
+			H[s][0][j] = 0;
 		}
 
 	for( i = 1; i < i_max + 1; i++)
@@ -1014,7 +1127,7 @@ unsigned int opt_solution_lcl ( double *** G, unsigned int l, unsigned int n, un
         double score = DBL_MIN;
         unsigned int i, j ,s;
 
-        for ( s = 0; s < l ; s++ )
+        for ( s = 0; s < l + 1; s++ )
         {
                 for ( i = 0 ; i < n + 1 ; i++ )
                 {
@@ -1027,7 +1140,7 @@ unsigned int opt_solution_lcl ( double *** G, unsigned int l, unsigned int n, un
 					( * MAXscore ) = score;
 					( * istart ) = i;                //backtrace from cell G[s,i,j]
 					( * jstart ) = j;                
-					( * MINnumgaps ) = s + 1;
+					( * MINnumgaps ) = s;
 				}
 			}
                 }
@@ -1124,7 +1237,6 @@ unsigned int backtracing_lcl ( double ** G, unsigned int m, unsigned int n, int 
                 }
                 else
                 {
-			if ( s == l ) break;
                         if ( H[i][j] < 0 )      //the gap is inserted in the text
                         {
                                 gaps_pos[s] = i;
@@ -1148,7 +1260,7 @@ unsigned int backtracing_lcl ( double ** G, unsigned int m, unsigned int n, int 
 		}
 		else
 			break;
-        }
+        }	
         return 1;
 }
 

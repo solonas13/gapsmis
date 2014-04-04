@@ -33,6 +33,7 @@ int main ( int argc, char ** argv)
    double gap_extend_pen;	//input argument
    unsigned int scoring_matrix; //input argument
    unsigned int MAXgap;	
+   unsigned int num_mat;        //input argument + 1
 
    double MAXscore;		//to be computed
    unsigned int MINnumgaps;	//to be computed		
@@ -125,6 +126,9 @@ int main ( int argc, char ** argv)
       return ( 1 );
     }
 
+   if ( L == 1 ) num_mat = MAXnumgaps + 1;
+   else num_mat = MAXnumgaps;
+
    MAXgap =  ( sw . max_gap <= -1 ) ?  n - 1 : sw . max_gap;
    if( MAXgap >= n )
     {
@@ -133,13 +137,13 @@ int main ( int argc, char ** argv)
     }
    
    /* 3d dynamic memory allocation for matrices G and H*/
-   if( ( G = ( double *** ) malloc ( ( MAXnumgaps ) * sizeof( double ** ) ) ) == NULL )
+   if( ( G = ( double *** ) malloc ( ( num_mat ) * sizeof( double ** ) ) ) == NULL )
     {
       fprintf( stderr, "G could not be allocated\n" );
       return 0;
     } 
 	
-   for ( i = 0; i < MAXnumgaps; i ++ )
+   for ( i = 0; i < num_mat; i ++ )
     {
       if( ( G[i] = ( double ** ) malloc ( ( n + 1 ) * sizeof( double * ) ) ) == NULL )
        {
@@ -157,13 +161,13 @@ int main ( int argc, char ** argv)
         G[i][j] = ( void * ) G[i][0] + j * ( m + 1 ) * sizeof( double );
     }
 
-   if( ( H = ( int *** ) malloc ( ( MAXnumgaps ) * sizeof( int ** ) ) ) == NULL )
+   if( ( H = ( int *** ) malloc ( ( num_mat ) * sizeof( int ** ) ) ) == NULL )
     {
       fprintf( stderr, "H could not be allocated\n" );
       return 0;
     } 
 	
-   for ( i = 0; i < MAXnumgaps; i ++ )
+   for ( i = 0; i < num_mat; i ++ )
     {
       if( ( H[i] = ( int ** ) malloc ( ( n + 1 ) * sizeof( int * ) ) ) == NULL )
        {
@@ -247,11 +251,11 @@ int main ( int argc, char ** argv)
  
    /* computes the position of the gap */
    if ( L == 0 ) backtracing ( H[MINnumgaps - 1], m, n, istart, gaps_pos, MINnumgaps, gaps_len, where );
-   if ( L == 1 ) backtracing_lcl ( G[MINnumgaps - 1], m, n, H[MINnumgaps - 1], istart, jstart, gaps_pos, MINnumgaps, gaps_len, where, &iend, &jend );
+   if ( L == 1 ) backtracing_lcl ( G[MINnumgaps], m, n, H[MINnumgaps], istart, jstart, gaps_pos, MINnumgaps, gaps_len, where, &iend, &jend );
 
    #if 0
    int s;
-   for ( s = 0;  s < MAXnumgaps; s++ )
+   for ( s = 0;  s < num_mat; s++ )
         {
 
                 for(i = 0; i < n+1; i++)                //Matrix G output
@@ -296,7 +300,7 @@ int main ( int argc, char ** argv)
         return ( 1 );	
       }
 
-   for ( i = 0;  i < MAXnumgaps; i++ )
+   for ( i = 0;  i < num_mat; i++ )
     {
       free ( G[i][0] );
       free ( G[i] );

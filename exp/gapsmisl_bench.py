@@ -6,7 +6,7 @@ import re
 import sys
 
 def run_gapsmis ( errors, gap_open_pen, gap_ext_pen, num_gaps ):
-  os . system ( "../gapsmis -a tmp_a.seq -b tmp_b.seq -o tmp.gapsmis -g " + str ( gap_open_pen ) + " -e " + str ( gap_ext_pen ) + " -l " + str ( num_gaps ) + " -m 30 " + " -L 1 ")
+  os . system ( "../gapsmis -a tmp_a.seq -b tmp_b.seq -o tmp.gapsmis -g " + str ( gap_open_pen ) + " -e " + str ( gap_ext_pen ) + " -l " + str ( num_gaps ) + " -L 1 ")
   return ( process_gapsmis ( errors ) )
 
 def process_gapsmis ( errors ):
