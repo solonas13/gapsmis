@@ -65,6 +65,7 @@ void usage ( void )
    fprintf ( stdout, "  -l, --max-num-gaps        <int>     Limit the  maximum number of allowed gaps\n"
                      "                                      to this value. (default: 2)\n" );
    fprintf ( stdout, "  -m, --max-gap             <int>     Limit the maximum gap size to this value.\n"
+                     "                                      This option is only for global alignment.\n"
                      "                                      (default: length of the longest sequence\n"
                      "                                      minus  1)\n" );
    fprintf ( stdout, "  -L, --local               <int>     It  can  be  1 for local  alignment or 0\n"

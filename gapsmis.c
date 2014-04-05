@@ -217,11 +217,8 @@ int main ( int argc, char ** argv)
       }
      else
       {
-        if ( ! ( dp_algorithm_pruned_lcl( G, MAXnumgaps, H, t -> data, n, p -> data, m, scoring_matrix, gap_open_pen, gap_extend_pen, MAXgap ) ) )
-         {
-           fprintf ( stderr, "Error: dp_algorithm_pruned() failed!!!\n" );
-           return ( 1 );	
-         }
+        fprintf ( stderr, "Error: option `- m' is only for global alignment!!!\n" );
+        return ( 1 );	
       }
     }
 

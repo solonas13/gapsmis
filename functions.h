@@ -39,8 +39,6 @@ unsigned int dp_algorithm_pruned ( double *** G, unsigned int l, int *** H, char
 
 unsigned int dp_algorithm_lcl ( double *** G, unsigned int l, int *** H, char * t, unsigned int n, char * p, unsigned int m, unsigned int matrix, double gap_open_penalty, double gap_extend_penalty );
 
-unsigned int dp_algorithm_pruned_lcl ( double *** G, unsigned int l, int *** H, char * t, unsigned int n, char * p, unsigned int m, unsigned int matrix, double gap_open_penalty, double gap_extend_penalty, unsigned int MAXgap );
-
 int nuc_delta ( char a, char b );
 
 int pro_delta ( char a, char b );
