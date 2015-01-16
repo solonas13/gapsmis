@@ -321,14 +321,14 @@ unsigned int dp_algorithm ( double *** G, unsigned int l, int *** H, char * t, u
 					return 0;
 
                                 unsigned int update_ver = 0;
-                                if( G[s - 1][r][j] < G[s - 1][i][j] )
+                                if( total_scoring ( i - r, G[s - 1][r][j], gap_open_penalty, gap_extend_penalty ) < total_scoring ( i - i, G[s - 1][i][j], gap_open_penalty, gap_extend_penalty ) )
                                 {
                                         r = i;
                                         update_ver = 1;
                                 }
 
                                 unsigned int update_hor = 0;
-                                if( G[s - 1][i][minhval[i]] < G[s - 1][i][j] )
+                                if( total_scoring ( j - minhval[i], G[s - 1][i][minhval[i]], gap_open_penalty, gap_extend_penalty ) < total_scoring ( j - j, G[s - 1][i][j], gap_open_penalty, gap_extend_penalty ) )
                                 {
                                         minhval[i] = j;
                                         update_hor = 1;
@@ -434,14 +434,14 @@ unsigned int dp_algorithm_lcl ( double *** G, unsigned int l, int *** H, char * 
 					return 0;
 	
                                 unsigned int update_ver = 0;
-                                if( G[s - 1][r][j] < G[s - 1][i][j] )
+                                if( total_scoring( i - r, G[s - 1][r][j], gap_open_penalty, gap_extend_penalty ) < total_scoring( i - i, G[s - 1][i][j], gap_open_penalty, gap_extend_penalty ) )
                                 {
                                        	r = i;
                                        	update_ver = 1;
                                 }
 
                                 unsigned int update_hor = 0;
-                                if( G[s - 1][i][maxhval[i]] < G[s - 1][i][j] )
+                                if( total_scoring( j - maxhval[i], G[s - 1][i][maxhval[i]], gap_open_penalty, gap_extend_penalty ) < total_scoring( j - j, G[s - 1][i][j], gap_open_penalty, gap_extend_penalty ) )
                                 {
                                        	maxhval[i] = j;
                                        	update_hor = 1;
@@ -579,14 +579,14 @@ unsigned int dp_algorithm_pruned ( double *** G, unsigned int l, int *** H, char
 					return 0;
 
                                 unsigned int update_hor = 0;
-                                if( G[s - 1][i][r] < G[s - 1][i][j] )
+                                if( total_scoring( j - r, G[s - 1][i][r], gap_open_penalty, gap_extend_penalty ) < total_scoring( j - j, G[s - 1][i][j], gap_open_penalty, gap_extend_penalty ) )
                                 {
                                         r = j;
                                         update_hor = 1;
                                 }
 
                                 unsigned int update_ver = 0;
-                                if( G[s - 1][minvval[j]][j] < G[s - 1][i][j] )
+                                if( total_scoring( i - minvval[j], G[s - 1][minvval[j]][j], gap_open_penalty, gap_extend_penalty ) < total_scoring( i - i, G[s - 1][i][j], gap_open_penalty, gap_extend_penalty ) )
                                 {
                                         minvval[j] = i;
                                         update_ver = 1;
@@ -987,7 +987,7 @@ Note: double matrix_score is the value of G[i][m], i.e. the score of an alignmen
 */
 double total_scoring( unsigned int gap, double matrix_score, double gap_open_penalty, double gap_extend_penalty )
  {
-   return ( matrix_score + ( ( gap > 0 ) ? ( gap - 1 ) * gap_extend_penalty + gap_open_penalty : 0 ) );
+   return ( matrix_score + ( ( gap > 0 ) ? ( gap - 1 ) * gap_extend_penalty + gap_open_penalty : gap_open_penalty ) );
  }
 
 /* Swaps the text and the pattern in case m > n */
